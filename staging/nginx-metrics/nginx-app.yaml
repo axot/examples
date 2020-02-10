@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginxsvc
+  labels:
+    app: nginx
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: nginx
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginxingress
+  labels:
+    app: nginx
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: nginxsvc
+          servicePort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "80"
+      labels:
+        app: nginx
+    spec:
+      tolerations:
+      - key: "for"
+        operator: "Equal"
+        value: "preemptible"
+        effect: "NoSchedule"
+      nodeSelector:
+        for: preemptible
+      volumes:
+      - name: confd-volume
+        configMap:
+          name: nginxconfd
+      - name: conf-volume
+        configMap:
+          name: nginxconf
+      containers:
+      - name: nginxhttp
+        image: firesh/nginx-lua
+        ports:
+        - containerPort: 80
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/usr/sbin/nginx","-s","quit"]
+        livenessProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 500m
+        volumeMounts:
+        - mountPath: /etc/nginx/conf.d
+          name: confd-volume
+        - mountPath: /etc/nginx
+          name: conf-volume

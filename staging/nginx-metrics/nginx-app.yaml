@@ -68,13 +68,27 @@ spec:
         lifecycle:
           preStop:
             exec:
-              command: ["/usr/sbin/nginx","-s","quit"]
+              command:
+                - sh
+                - -c
+                - |
+                  sleep 25;
+                  /usr/sbin/nginx -s quit;
         livenessProbe:
           httpGet:
             path: /index.html
             port: 80
           initialDelaySeconds: 30
           timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 3
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 2
         resources:
           requests:
             cpu: 500m

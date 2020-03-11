@@ -59,6 +59,8 @@ spec:
       containers:
       - name: nginxhttp
         image: firesh/nginx-lua
+        command: ["sh", "-c"]
+        args: ["touch /usr/share/nginx/html/readiness; nginx -g 'daemon off;'"]
         ports:
         - containerPort: 80
         lifecycle:
@@ -68,7 +70,8 @@ spec:
                 - sh
                 - -c
                 - |
-                  sleep 25;
+                  rm /usr/share/nginx/html/readiness;
+                  sleep 15;
                   /usr/sbin/nginx -s quit;
         livenessProbe:
           httpGet:
@@ -78,12 +81,12 @@ spec:
           timeoutSeconds: 1
         readinessProbe:
           httpGet:
-            path: /index.html
+            path: /readiness
             port: 80
           initialDelaySeconds: 30
-          periodSeconds: 3
+          periodSeconds: 2
           timeoutSeconds: 2
-          failureThreshold: 3
+          failureThreshold: 2
           successThreshold: 2
         resources:
           requests:
@@ -93,3 +96,4 @@ spec:
           name: confd-volume
         - mountPath: /etc/nginx
           name: conf-volume
+      terminationGracePeriodSeconds: 20

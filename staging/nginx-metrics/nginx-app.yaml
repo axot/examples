@@ -20,13 +20,9 @@ metadata:
   labels:
     app: nginx
 spec:
-  rules:
-  - http:
-      paths:
-      - path: /*
-        backend:
-          serviceName: nginxsvc
-          servicePort: 80
+  backend:
+    serviceName: nginxsvc
+    servicePort: 80
 ---
 apiVersion: apps/v1
 kind: Deployment

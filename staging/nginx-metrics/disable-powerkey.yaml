@@ -4,7 +4,6 @@ metadata:
   labels:
     app: disable-powerkey
   name: disable-powerkey
-  namespace: default
 spec:
   revisionHistoryLimit: 10
   selector:

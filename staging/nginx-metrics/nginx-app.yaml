@@ -15,17 +15,6 @@ spec:
   selector:
     app: nginx
 ---
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: nginxingress
-  labels:
-    app: nginx
-spec:
-  backend:
-    serviceName: nginxsvc
-    servicePort: 80
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:

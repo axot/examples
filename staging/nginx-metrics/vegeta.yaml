@@ -27,7 +27,7 @@ spec:
         - sh
         - -c
         - |
-          echo 'GET http://35.190.44.169/index.html' | vegeta attack -rate 300 -keepalive false | vegeta encode | tee /var/log/vegeta/results.log
+          echo 'GET http://__replcae_me_addr__/index.html' | vegeta attack -rate 300 -keepalive false | vegeta encode | tee /var/log/vegeta/results.log
         resources:
           requests:
             cpu: 700m

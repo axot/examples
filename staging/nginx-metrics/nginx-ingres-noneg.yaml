@@ -1,0 +1,10 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginxingress-noneg
+  labels:
+    app: nginx
+spec:
+  backend:
+    serviceName: nginxsvc-noneg
+    servicePort: 80

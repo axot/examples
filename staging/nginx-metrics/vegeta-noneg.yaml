@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vegeta-noneg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vegeta
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "2112"
+      labels:
+        app: vegeta
+    spec:
+      hostNetwork: true
+      volumes:
+      - name: stdout-volume
+        emptyDir: {}
+      containers:
+      - name: vegeta
+        image: peterevans/vegeta
+        command:
+        - sh
+        - -c
+        - |
+          echo 'GET http://__replcae_me_addr__/index.html' | vegeta attack -rate 300 -keepalive false | vegeta encode | tee /var/log/vegeta/results.log
+        resources:
+          requests:
+            cpu: 700m
+        volumeMounts:
+        - mountPath: /var/log/vegeta
+          name: stdout-volume
+      - name: exporter
+        image: axot/vegeta-exporter
+        ports:
+        - containerPort: 2112
+        command:
+        - sh
+        - -c
+        - |
+          tail -F /var/log/vegeta/results.log | vegeta-exporter
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 10m
+        volumeMounts:
+        - mountPath: /var/log/vegeta
+          name: stdout-volume

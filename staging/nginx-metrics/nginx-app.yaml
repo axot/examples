@@ -21,6 +21,11 @@ metadata:
   name: my-nginx
 spec:
   replicas: 3
+  minReadySeconds: 60
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
   selector:
     matchLabels:
       app: nginx
@@ -62,19 +67,19 @@ spec:
                 - -c
                 - |
                   rm /usr/share/nginx/html/readiness;
-                  sleep 15;
+                  sleep 25;
                   /usr/sbin/nginx -s quit;
         livenessProbe:
           httpGet:
             path: /index.html
             port: 80
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           timeoutSeconds: 1
         readinessProbe:
           httpGet:
             path: /readiness
             port: 80
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 2
           timeoutSeconds: 2
           failureThreshold: 2
@@ -87,4 +92,4 @@ spec:
           name: confd-volume
         - mountPath: /etc/nginx
           name: conf-volume
-      terminationGracePeriodSeconds: 20
+      terminationGracePeriodSeconds: 30

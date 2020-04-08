@@ -21,7 +21,7 @@ metadata:
   name: my-nginx
 spec:
   replicas: 3
-  minReadySeconds: 60
+  minReadySeconds: 5
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -67,7 +67,7 @@ spec:
                 - -c
                 - |
                   rm /usr/share/nginx/html/readiness;
-                  sleep 25;
+                  sleep 10;
                   /usr/sbin/nginx -s quit;
         livenessProbe:
           httpGet:
@@ -86,7 +86,7 @@ spec:
           successThreshold: 2
         resources:
           requests:
-            cpu: 500m
+            cpu: 200m
         volumeMounts:
         - mountPath: /etc/nginx/conf.d
           name: confd-volume

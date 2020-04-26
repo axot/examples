@@ -1,0 +1,93 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    name: node-termination-handler
+  name: node-termination-handler
+  namespace: kube-system
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: node-termination-handler
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: node-termination-handler
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-accelerator
+                operator: Exists
+            - matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: Exists
+      containers:
+      - args:
+        - --logtostderr
+        - --exclude-pods=$(POD_NAME):$(POD_NAMESPACE),kube-proxy-$(NODE_NAME):kube-system,prometheus-to-sd:kube-system
+        - -v=10
+        - --taint=cloud.google.com/impending-node-termination::NoSchedule
+        - --system-pod-grace-period=10s
+        command:
+        - ./node-termination-handler
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: SLACK_WEBHOOK_URL
+        image: image: daisaru11/k8s-node-termination-handler:testing
+        imagePullPolicy: IfNotPresent
+        name: node-termination-handler
+        resources:
+          limits:
+            cpu: 150m
+            memory: 30Mi
+        securityContext:
+          capabilities:
+            add:
+            - SYS_BOOT
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      hostPID: true
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: node-termination-handler
+      serviceAccountName: node-termination-handler
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+  templateGeneration: 6
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  currentNumberScheduled: 3
+  desiredNumberScheduled: 3
+  numberAvailable: 3
+  numberMisscheduled: 0
+  numberReady: 3
+  observedGeneration: 6
+  updatedNumberScheduled: 3

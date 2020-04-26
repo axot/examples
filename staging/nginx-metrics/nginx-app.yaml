@@ -8,6 +8,7 @@ metadata:
     cloud.google.com/neg: '{"ingress": true}'
 spec:
   type: NodePort
+  #externalTrafficPolicy: Local
   ports:
   - port: 80
     protocol: TCP
@@ -73,7 +74,7 @@ spec:
                 - -c
                 - |
                   rm /usr/share/nginx/html/readiness;
-                  sleep 15;
+                  sleep 10;
                   /usr/sbin/nginx -s quit;
         livenessProbe:
           httpGet:
@@ -86,7 +87,7 @@ spec:
             path: /readiness
             port: 80
           initialDelaySeconds: 30
-          periodSeconds: 2
+          periodSeconds: 30
           timeoutSeconds: 2
           failureThreshold: 2
           successThreshold: 2
